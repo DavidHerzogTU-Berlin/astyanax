@@ -75,7 +75,7 @@ task uploadMavenLocal(type:Upload, dependsOn: signArchives) {
             beforeDeployment { signing.signPom(it) }
 
                 // To test deployment locally, use the following instead of oss.sonatype.org
-                repository(url: "file://localhost/home/david/.m2/repository/")
+                repository(url: "file:~/.m2/repository/")
                 uniqueVersion = false
                 // Closure to configure all the POM with extra info, common to all projects
                 pom.project {
