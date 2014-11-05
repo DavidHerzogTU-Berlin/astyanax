@@ -1,5 +1,5 @@
 ext {
- cassandraVersion = "1.2.11"
+ cassandraVersion = "1.2.18-SNAPSHOT"
  thriftVersion = "0.7.0"
  junitVersion = "4.8.1"
  guavaVersion = "14.0.1"
@@ -19,3 +19,4 @@ ext {
  commonsIOVersion = "2.1"
  javaDriverVersion = "2.0.3"
 }
+

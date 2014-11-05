@@ -12,6 +12,7 @@ buildscript {
 allprojects {
     repositories { 
         mavenCentral() // maven { url: 'http://jcenter.bintray.com' }
+        mavenLocal()
     }
 }
 
@@ -63,6 +64,7 @@ project(':astyanax') {
         compile  project(':astyanax-examples')
         compile  project(':astyanax-contrib')
         compile  project(':astyanax-test')
+        compile 'org.scala-lang:scala-library:2.10.4'
     }
 }
 
@@ -70,6 +72,9 @@ project(':astyanax-core') {
     apply plugin: 'osgi'
     apply plugin: 'java'
     dependencies {
+        compile group: 'com.typesafe.akka', name: 'akka-actor_2.10', version: '2.4-SNAPSHOT'
+        compile group: 'org.scala-lang', name: 'scala-library', version: '2.10.4'
+        compile "com.typesafe:config:1.0.2"
         testCompile "junit:junit:$junitVersion"
     }
 }

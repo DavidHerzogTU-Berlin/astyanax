@@ -73,7 +73,7 @@ import com.netflix.astyanax.thrift.model.ThriftCounterSuperColumnImpl;
 import com.netflix.astyanax.thrift.model.ThriftRowsListImpl;
 import com.netflix.astyanax.thrift.model.ThriftRowsSliceImpl;
 import com.netflix.astyanax.thrift.model.ThriftSuperColumnImpl;
-
+import com.netflix.astyanax.connectionpool.impl.PendingRequestMap;
 /**
  * Implementation of all column family queries using the thrift API.
  *
@@ -98,7 +98,6 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
     final ListeningExecutorService         executor;
     Host                                   pinnedHost;
     RetryPolicy                            retry;
-
     public ThriftColumnFamilyQueryImpl(ExecutorService executor, KeyspaceTracerFactory tracerFactory,
             ThriftKeyspaceImpl keyspace, ConnectionPool<Cassandra.Client> cp, ColumnFamily<K, C> columnFamily,
             ConsistencyLevel consistencyLevel, RetryPolicy retry) {
@@ -110,7 +109,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
         this.executor = MoreExecutors.listeningDecorator(executor);
         this.retry = retry;
     }
-
+    
     // Single ROW query
     @Override
     public RowQuery<K, C> getKey(final K rowKey) {
@@ -174,6 +173,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                         return executor.submit(new Callable<OperationResult<Column<C>>>() {
                             @Override
                             public OperationResult<Column<C>> call() throws Exception {
+                 
                                 return execute();
                             }
                         });
@@ -189,6 +189,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                             @Override
                             public ColumnList<C> execute(Client client, ConnectionContext context) throws ConnectionException {
+                      
                                 if (isPaginating && paginateNoMore) {
                                     return new EmptyColumnList<C>();
                                 }
@@ -197,12 +198,15 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                             }
 
                             @Override
-                            public ColumnList<C> internalExecute(Client client, ConnectionContext context) throws Exception {
+                            public ColumnList<C> internalExecute(Client client, ConnectionContext context) throws Exception {   
+        
+                                PendingRequestMap.incrementPendingRequest(context.toString());
                                 List<ColumnOrSuperColumn> columnList = client.get_slice(columnFamily.getKeySerializer()
                                         .toByteBuffer(rowKey), new ColumnParent().setColumn_family(columnFamily
                                         .getName()), predicate, ThriftConverter
                                         .ToThriftConsistencyLevel(consistencyLevel));
-
+                               
+                                PendingRequestMap.decrementPendingRequest(context.toString());
                                 // Special handling for pagination
                                 if (isPaginating && predicate.isSetSlice_range()) {
                                     // Did we reach the end of the query.
@@ -222,7 +226,7 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         if (!columnList.isEmpty())
                                             columnList.remove(0);
                                     }
-
+                                   
                                     // Set the start column for the next page to
                                     // the last column of this page.
                                     // We will discard this column later.
@@ -243,11 +247,22 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         }
                                     }
                                 }
+                                //System.out.println("getQsz: " + columnList.get(0).getQsz()); //try this one
+                                //System.out.println("getMu: " + columnList.get(0).getMu());
                                 ColumnList<C> result = new ThriftColumnOrSuperColumnListImpl<C>(columnList,
                                         columnFamily.getColumnSerializer());
+                             
+                               /** if (result.getColumnByName((C) "MU") != null) {
+                                	PendingRequestMap.addMUSample(context.toString() , 
+                            				Double.valueOf(result.getColumnByName( (C) "MU").getStringValue()) );
+                                }
+                                if (result.getColumnByName((C) "QSZ") != null) {
+                                	PendingRequestMap.addQSZsample(context.toString() , 
+                            				Double.valueOf(result.getColumnByName( (C) "QSZ").getStringValue()) );
+                                }**/
                                 return result;
                             }
-
+                            
                             @Override
                             public ByteBuffer getRowKey() {
                                 return columnFamily.getKeySerializer().toByteBuffer(rowKey);

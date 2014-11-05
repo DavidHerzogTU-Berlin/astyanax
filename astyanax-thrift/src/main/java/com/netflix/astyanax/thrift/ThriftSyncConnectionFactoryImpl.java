@@ -70,6 +70,7 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
     private final ConnectionPoolMonitor monitor;
     private final AstyanaxConfiguration asConfig;
 
+    
     public ThriftSyncConnectionFactoryImpl(AstyanaxConfiguration asConfig, ConnectionPoolConfiguration cpConfig, KeyspaceTracerFactory tracerFactory,
             ConnectionPoolMonitor monitor) {
         this.cpConfig = cpConfig;
@@ -78,7 +79,8 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
         this.tracerFactory = tracerFactory;
         this.monitor = monitor;
     }
-
+    
+    
     @Override
     public Connection<Cassandra.Client> createConnection(final HostConnectionPool<Cassandra.Client> pool)
             throws ThrottledException {
@@ -301,7 +303,8 @@ public class ThriftSyncConnectionFactoryImpl implements ConnectionFactory<Cassan
 
         @Override
         public String toString() {
-            return String.format(NAME_FORMAT, getHost().getHostName(), id);
+        	//changed this from String.format(NAME_FORMAT, getHost().getHostName(), id); to :
+            return getHost().getIpAddress();
         }
 
         /**

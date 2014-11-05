@@ -134,7 +134,6 @@ public class TokenPartitionedTopology<CL> implements Topology<CL> {
      */
     public synchronized boolean setPools(Collection<HostConnectionPool<CL>> ring) {
         boolean didChange = false;
-        
         Set<HostConnectionPool<CL>> allPools = Sets.newHashSet();
         
         // Create a mapping of end token to a list of hosts that own the token
