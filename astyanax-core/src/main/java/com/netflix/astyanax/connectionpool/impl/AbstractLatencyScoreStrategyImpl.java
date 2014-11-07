@@ -62,17 +62,14 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
     public AbstractLatencyScoreStrategyImpl(String name, int updateInterval, int resetInterval, int blockedThreshold, double keepRatio, double scoreThreshold) {
         this(name, updateInterval, resetInterval, blockedThreshold, keepRatio, scoreThreshold, Executors.newScheduledThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build()));
         bOwnedExecutor = true;
-        System.out.println("AbstractLatencyScoreStrategyImpl");
     }
 
     public AbstractLatencyScoreStrategyImpl(String name, int updateInterval, int resetInterval) {
         this(name, updateInterval, resetInterval, DEFAULT_BLOCKED_THREAD_THRESHOLD, DEFAULT_KEEP_RATIO, DEFAULT_SCORE_THRESHOLD);
-        System.out.println("AbstractLatencyScoreStrategyImpl");
     }
     
     public AbstractLatencyScoreStrategyImpl(String name) {
         this(name, DEFAULT_UPDATE_INTERVAL, DEFAULT_RESET_INTERVAL, DEFAULT_BLOCKED_THREAD_THRESHOLD, DEFAULT_KEEP_RATIO, DEFAULT_SCORE_THRESHOLD);
-        System.out.println("AbstractLatencyScoreStrategyImpl");
     }
     
     public final Instance createInstance() {

@@ -538,6 +538,7 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
 
     @Override
     public double getScore() {
+        //todo: what to return?
     	if(latencyStrategy.getName().equals("EMAC")) {
     		return 1;
     	}
@@ -547,6 +548,7 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
 
     @Override
     public void addLatencySample(long latency, long now) {
+        //todo: do nothing?
     	if(latencyStrategy.getName().equals("EMAC")) {
         }
     	else 
