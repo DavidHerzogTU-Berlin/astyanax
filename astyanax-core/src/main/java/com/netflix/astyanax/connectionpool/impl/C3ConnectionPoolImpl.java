@@ -38,9 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class C3ConnectionPoolImpl<CL> extends AbstractHostPartitionConnectionPool<CL> {
 
-    private final AtomicInteger roundRobinCounter = new AtomicInteger(new Random().nextInt(997));
-    private static final int MAX_RR_COUNTER = Integer.MAX_VALUE/2;
-
     public C3ConnectionPoolImpl(ConnectionPoolConfiguration config, ConnectionFactory<CL> factory,
             ConnectionPoolMonitor monitor) {
         super(config, factory, monitor);
@@ -56,15 +53,10 @@ public class C3ConnectionPoolImpl<CL> extends AbstractHostPartitionConnectionPoo
                     throw new NoAvailableHostsException("Host " + operation.getPinnedHost() + " not active");
                 }
                 return new C3ExecuteWithFailover<CL, R>(config, monitor,
-                        Arrays.<HostConnectionPool<CL>> asList(pool), 0);
+                        Arrays.<HostConnectionPool<CL>> asList(pool));
             }
             
-            int index = roundRobinCounter.incrementAndGet();
-            if (index > MAX_RR_COUNTER) {
-                roundRobinCounter.set(0);
-            }
-            
-            return new RoundRobinExecuteWithFailover<CL, R>(config, monitor, topology.getAllPools().getPools(), index);
+            return new C3ExecuteWithFailover<CL, R>(config, monitor, topology.getAllPools().getPools());
         }
         catch (ConnectionException e) {
             monitor.incOperationFailure(e.getHost(), e);
