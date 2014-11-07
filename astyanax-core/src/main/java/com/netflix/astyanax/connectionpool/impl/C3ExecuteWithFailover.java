@@ -48,7 +48,6 @@ import akka.util.Timeout;
  */
 public class C3ExecuteWithFailover<CL, R> extends
 		AbstractExecuteWithFailoverImpl<CL, R> {
-	private int index;
 	protected HostConnectionPool<CL> pool;
 	private int retryCountdown;
 	protected final List<HostConnectionPool<CL>> pools;
@@ -57,11 +56,9 @@ public class C3ExecuteWithFailover<CL, R> extends
 	protected int waitMultiplier = 1;
 
 	public C3ExecuteWithFailover(ConnectionPoolConfiguration config,
-			ConnectionPoolMonitor monitor, List<HostConnectionPool<CL>> pools,
-			int index) throws ConnectionException {
+			ConnectionPoolMonitor monitor, List<HostConnectionPool<CL>> pools) throws ConnectionException {
 		super(config, monitor);
 
-		this.index = index;
 		this.pools = pools;
 
 		if (pools == null || pools.isEmpty()) {
@@ -76,11 +73,6 @@ public class C3ExecuteWithFailover<CL, R> extends
 			retryCountdown = 1;
 
 		waitDelta = config.getMaxTimeoutWhenExhausted() / retryCountdown;
-	}
-
-	public int getNextHostIndex() {
-		//Get the node with the best score (first node).
-			return 0;
 	}
 
 	public boolean canRetry() {
@@ -121,8 +113,7 @@ public class C3ExecuteWithFailover<CL, R> extends
                 System.out.println(e);
             }
             
-                
-		pool = pools.get(getNextHostIndex());
+		pool = pools.get(0); //Get the node with the best score (first node).
 		return pool.borrowConnection(waitDelta * waitMultiplier);
 	}
 
