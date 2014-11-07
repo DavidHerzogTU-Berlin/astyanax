@@ -86,7 +86,7 @@ public class TokenAwareConnectionPoolImpl<CL> extends AbstractHostPartitionConne
                     executeWithFailover = new LeastOutstandingExecuteWithFailover<CL, R>(config, monitor, pools);
                     break;
                 case C3://todo: what do we realy need to call C3ExecuteWithFailover
-                    executeWithFailover = new C3ExecuteWithFailover<CL, R>(config, monitor, pools, isSorted ? 0 : index);
+                    executeWithFailover = new C3ExecuteWithFailover<CL, R>(config, monitor, pools);
                 default:
                     executeWithFailover = new RoundRobinExecuteWithFailover<CL, R>(config, monitor, pools, isSorted ? 0 : index);
                     break;
