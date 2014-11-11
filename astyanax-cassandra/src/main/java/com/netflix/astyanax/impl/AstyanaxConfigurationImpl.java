@@ -16,13 +16,10 @@
 package com.netflix.astyanax.impl;
 
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
-
-
 
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -49,14 +46,12 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
                 .build());
     private NodeDiscoveryType   discoveryType               = NodeDiscoveryType.NONE;
     private int                 discoveryIntervalInSeconds  = 30;
-    private ConnectionPoolType  connectionPoolType          = ConnectionPoolType.ROUND_ROBIN; //was ROUND_ROBIN before
+    private ConnectionPoolType  connectionPoolType          = ConnectionPoolType.ROUND_ROBIN;
     private String              cqlVersion                  = null;
     private String              targetCassandraVersion      = "1.1";
     private Map<String, Partitioner> partitioners           = Maps.newHashMap();
-    
-    
+
     public AstyanaxConfigurationImpl() {
-    	
         partitioners.put(org.apache.cassandra.dht.RandomPartitioner.class.getCanonicalName(), BigInteger127Partitioner.get());
         try {
         	partitioners.put(org.apache.cassandra.dht.Murmur3Partitioner.class.getCanonicalName(), Murmur3Partitioner.get());
@@ -73,7 +68,6 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
 
     @Override
     public ConnectionPoolType getConnectionPoolType() {
-    	System.out.println("getConnectionPooltYPE" + this.connectionPoolType.toString());
         return this.connectionPoolType;
     }
 
@@ -189,8 +183,4 @@ public class AstyanaxConfigurationImpl implements AstyanaxConfiguration {
             throw new Exception("Unsupported partitioner " + partitionerName);
         return partitioner;
     }
-    
-    
-
-
 }
