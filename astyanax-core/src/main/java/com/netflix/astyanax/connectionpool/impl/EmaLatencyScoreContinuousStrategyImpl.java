@@ -31,11 +31,6 @@ public class EmaLatencyScoreContinuousStrategyImpl extends AbstractLatencyScoreS
             private volatile double cachedScore = 0.0d;
             
             @Override
-            public String getName() {
-            	return NAME;
-            }
-            
-            @Override
             public void addSample(long sample) {
                 newSample = sample;
                 update();
