@@ -23,5 +23,5 @@ package com.netflix.astyanax.connectionpool.impl;
  *
  */
 public enum HostSelectorStrategy {
-    ROUND_ROBIN, LEAST_OUTSTANDING, C3
+    ROUND_ROBIN, LEAST_OUTSTANDING
 }

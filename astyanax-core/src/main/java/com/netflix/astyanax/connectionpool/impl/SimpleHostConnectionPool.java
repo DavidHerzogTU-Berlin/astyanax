@@ -46,7 +46,6 @@ import com.netflix.astyanax.connectionpool.exceptions.PoolTimeoutException;
 import com.netflix.astyanax.connectionpool.exceptions.ThrottledException;
 import com.netflix.astyanax.connectionpool.exceptions.TimeoutException;
 import com.netflix.astyanax.connectionpool.exceptions.UnknownException;
-import com.netflix.astyanax.connectionpool.impl.PendingRequestMap;
 
 /**
  * Pool of connections for a single host and implements the {@link HostConnectionPool} interface
@@ -122,6 +121,7 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
 
     public SimpleHostConnectionPool(Host host, ConnectionFactory<CL> factory, ConnectionPoolMonitor monitor,
             ConnectionPoolConfiguration config, Listener<CL> listener) {
+        
         this.host            = host;
         this.config          = config;
         this.factory         = factory;
@@ -165,7 +165,6 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
             this.markAsDown(null);
             throw new HostDownException("Failed to prime connections", lastException);
         }
-
         return opened;
     }
 
@@ -185,7 +184,6 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
     public Connection<CL> borrowConnection(int timeout) throws ConnectionException {
         Connection<CL> connection = null;
         long startTime = System.currentTimeMillis();
-
         try {
             // Try to get a free connection without blocking.
             connection = availableConnections.poll();
@@ -486,7 +484,6 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
     
     @Override
     public Host getHost() {
-       
         return host;
     }
 
@@ -538,21 +535,12 @@ public class SimpleHostConnectionPool<CL> implements HostConnectionPool<CL> {
 
     @Override
     public double getScore() {
-        //todo: what to return?
-    	if(latencyStrategy.getName().equals("EMAC")) {
-    		return 1;
-    	}
-    	else
-    		return latencyStrategy.getScore();
+        return latencyStrategy.getScore();
     }
 
     @Override
     public void addLatencySample(long latency, long now) {
-        //todo: do nothing?
-    	if(latencyStrategy.getName().equals("EMAC")) {
-        }
-    	else 
-    		latencyStrategy.addSample(latency);    
+        latencyStrategy.addSample(latency);
     }
     
     @Override

@@ -49,7 +49,6 @@ public class RoundRobinConnectionPoolImpl<CL> extends AbstractHostPartitionConne
     @SuppressWarnings("unchecked")
     public <R> ExecuteWithFailover<CL, R> newExecuteWithFailover(Operation<CL, R> operation) throws ConnectionException {
         try {
-            rebuildPartitions();
             if (operation.getPinnedHost() != null) {
                 HostConnectionPool<CL> pool = hosts.get(operation.getPinnedHost());
                 if (pool == null) {

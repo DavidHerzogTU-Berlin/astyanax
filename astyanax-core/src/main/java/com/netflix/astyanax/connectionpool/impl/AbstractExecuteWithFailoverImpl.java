@@ -114,22 +114,16 @@ public abstract class AbstractExecuteWithFailoverImpl<CL, R> implements ExecuteW
             attemptCounter++;
             
             try {
-               
                 connection = borrowConnection(filteredOperation);
-                
                 startTime = System.currentTimeMillis();
                 OperationResult<R> result = connection.execute(filteredOperation);
                 result.setAttemptsCount(attemptCounter);
                 monitor.incOperationSuccess(getCurrentHost(), result.getLatency());
-                
-
                 return result;
             }
             catch (Exception e) {
                 ConnectionException ce = (e instanceof ConnectionException) ? (ConnectionException) e
                         : new UnknownException(e);
-
-                
             	try {
             		informException(ce);
                     monitor.incFailover(ce.getHost(), ce);

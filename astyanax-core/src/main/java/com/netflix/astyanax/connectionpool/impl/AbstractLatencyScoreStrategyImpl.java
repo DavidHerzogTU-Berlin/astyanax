@@ -49,10 +49,8 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
 
         this.executor  = executor;
         this.instances = new NonBlockingHashSet<Instance>();
-        System.out.println("AbstractLatencyScoreStrategyImpl");
     }
     
-   
     /**
      * 
      * @param name
@@ -86,32 +84,29 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
 
     @Override
     public void start(final Listener listener) {
-        if (!name.equals("EMAC")) {
-            if (updateInterval > 0) {
-                executor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        Thread.currentThread().setName(name + "_ScoreUpdate");
-                        update();
-                        listener.onUpdate();
-                        executor.schedule(this, getUpdateInterval(), TimeUnit.MILLISECONDS);
-                    }
-                }, new Random().nextInt(getUpdateInterval()), TimeUnit.MILLISECONDS);
-            }
-
-            if (resetInterval > 0) {
-                executor.schedule(new Runnable() {
-                    @Override
-                    public void run() {
-                        Thread.currentThread().setName(name + "_ScoreReset");
-                        reset();
-                        listener.onReset();
-                        executor.schedule(this, getResetInterval(), TimeUnit.MILLISECONDS);
-                    }
-                }, new Random().nextInt(getResetInterval()), TimeUnit.MILLISECONDS);
-            }
+        if (updateInterval > 0) {
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    Thread.currentThread().setName(name + "_ScoreUpdate");
+                    update();
+                    listener.onUpdate();
+                    executor.schedule(this, getUpdateInterval(), TimeUnit.MILLISECONDS);
+                }
+            }, new Random().nextInt(getUpdateInterval()), TimeUnit.MILLISECONDS);
         }
-       
+
+        if (resetInterval > 0) {
+            executor.schedule(new Runnable() {
+                @Override
+                public void run() {
+                    Thread.currentThread().setName(name + "_ScoreReset");
+                    reset();
+                    listener.onReset();
+                    executor.schedule(this, getResetInterval(), TimeUnit.MILLISECONDS);
+                }
+            }, new Random().nextInt(getResetInterval()), TimeUnit.MILLISECONDS);
+        }
     }
 
     @Override
@@ -167,57 +162,56 @@ public abstract class AbstractLatencyScoreStrategyImpl implements LatencyScoreSt
         while (iter.hasNext()) {
             HostConnectionPool<CL> pool = iter.next();
             if (pool.isReconnecting()) {
-                System.out.println("**** Removing host (reconnecting) : " + pool.toString());
+//                System.out.println("**** Removing host (reconnecting) : " + pool.toString());
                 iter.remove();
             }
         }
-       if (!name.equals("EMAC")) {
+       
 	//step 2  
-            if (pools.size() > 0) {
-                // Step 3: Filter out hosts that are too slow and keep at least the best keepRatio hosts
-                int first = 0;
-                for (; pools.get(0).getScore() == 0.0 && first < pools.size(); first++);
-                
-                if (first < pools.size()) {
-                    double scoreFirst = pools.get(first).getScore();
-                    if (scoreFirst > 0.0) {
-                        for (int i = pools.size() - 1; i >= keep && i > first; i--) {
-                            HostConnectionPool<CL> pool  = pools.get(i);
-                            if ((pool.getScore() / scoreFirst) > getScoreThreshold()) {
-                                pools.remove(i);
-                            }
-                            else {
-                                break;
-                            }
+        if (pools.size() > 0) {
+            // Step 3: Filter out hosts that are too slow and keep at least the best keepRatio hosts
+            int first = 0;
+            for (; pools.get(0).getScore() == 0.0 && first < pools.size(); first++);
+            
+            if (first < pools.size()) {
+                double scoreFirst = pools.get(first).getScore();
+//                System.out.println("First : " + scoreFirst);
+                if (scoreFirst > 0.0) {
+                    for (int i = pools.size() - 1; i >= keep && i > first; i--) {
+                        HostConnectionPool<CL> pool  = pools.get(i);
+//                        System.out.println(i + " : " + pool.getScore() + " threshold:" + getScoreThreshold());
+                        if ((pool.getScore() / scoreFirst) > getScoreThreshold()) {
+//                            System.out.println("**** Removing host (score) : " + pool.toString());
+                            pools.remove(i);
+                        }
+                        else {
+                            break;
                         }
                     }
                 }
             }
-            // Step 3: Filter out hosts that are too slow and keep at least the best keepRatio hosts
-            if (pools.size() > keep) {
-                Collections.sort(pools, busyComparator);
-                HostConnectionPool<CL> poolFirst = pools.get(0);
-                int firstBusy = poolFirst.getBusyConnectionCount() - poolFirst.getBlockedThreadCount();
-                for (int i = pools.size() - 1; i >= keep; i--) {
-                    HostConnectionPool<CL> pool  = pools.get(i);
-                    int busy = pool.getBusyConnectionCount() + pool.getBlockedThreadCount();
-                    if ( (busy - firstBusy) > getBlockedThreshold()) {
-                        pools.remove(i);
-                    }
+        }
+        // Step 3: Filter out hosts that are too slow and keep at least the best keepRatio hosts
+        if (pools.size() > keep) {
+            Collections.sort(pools, busyComparator);
+            HostConnectionPool<CL> poolFirst = pools.get(0);
+            int firstBusy = poolFirst.getBusyConnectionCount() - poolFirst.getBlockedThreadCount();
+            for (int i = pools.size() - 1; i >= keep; i--) {
+                HostConnectionPool<CL> pool  = pools.get(i);
+                int busy = pool.getBusyConnectionCount() + pool.getBlockedThreadCount();
+                if ( (busy - firstBusy) > getBlockedThreshold()) {
+//                    System.out.println("**** Removing host (blocked) : " + pool.toString());
+                    pools.remove(i);
                 }
             }
-        
-        
-        	Collections.shuffle(pools);
         }
         
-        
+        // Step 4: Shuffle the hosts 
+        Collections.shuffle(pools);
         
         return pools;
     }
-    
-    
-    
+
     @Override
     public void update() {
         for (Instance inst : instances) {

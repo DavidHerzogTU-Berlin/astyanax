@@ -24,6 +24,6 @@ import com.netflix.astyanax.connectionpool.ConnectionPool;
  * @see {@link RoundRobinConnectionPoolImpl} {@link BagOfConnectionsConnectionPoolImpl} {@link TokenAwareConnectionPoolImpl} for different pool impls 
  * that correspond to this enum.
  */
-public enum ConnectionPoolType {//todo: C3 needed here?
-    TOKEN_AWARE, ROUND_ROBIN, BAG, C3;
+public enum ConnectionPoolType {
+    TOKEN_AWARE, ROUND_ROBIN, BAG;
 }

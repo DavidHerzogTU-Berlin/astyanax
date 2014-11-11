@@ -62,6 +62,7 @@ public class HostConnectionPoolPartition<CL> {
             if (this.pools.remove(pool))
                 didChange = true;
         }
+    
         if (didChange)
             refresh();
         return didChange;

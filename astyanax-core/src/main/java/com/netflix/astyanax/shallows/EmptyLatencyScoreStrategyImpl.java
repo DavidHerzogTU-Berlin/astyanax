@@ -32,10 +32,6 @@ public class EmptyLatencyScoreStrategyImpl implements LatencyScoreStrategy {
     @Override
     public Instance createInstance() {
         return new Instance() {
-        	@Override
-            public String getName() {
-            	return "emptyStrategy";
-            }
 
             @Override
             public void addSample(long sample) {
