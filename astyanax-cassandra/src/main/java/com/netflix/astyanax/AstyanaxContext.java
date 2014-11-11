@@ -107,10 +107,12 @@ public class AstyanaxContext<T> {
 
         protected <T> ConnectionPool<T> createConnectionPool(ConnectionFactory<T> connectionFactory) {
             ConnectionPool<T> connectionPool = null;
+            
             // HACK to get the CqlFamilyFactory working with AstyanaxContext
             if (connectionFactory.getClass().getName().contains("CqlFamilyFactory")) {
             	return new ConnectionPoolProxy<T>(cpConfig, connectionFactory, monitor);
             }
+            
             switch (asConfig.getConnectionPoolType()) {
             	
             case TOKEN_AWARE:
@@ -118,7 +120,6 @@ public class AstyanaxContext<T> {
                 break;
 
             case BAG:
-            	System.out.println("BAG");
                 connectionPool = new BagOfConnectionsConnectionPoolImpl<T>(cpConfig, connectionFactory, monitor);
                 break;
 
@@ -137,6 +138,7 @@ public class AstyanaxContext<T> {
 
         public <T> AstyanaxContext<Keyspace> buildKeyspace(AstyanaxTypeFactory<T> factory) {
             this.cpConfig.initialize();
+            
             ConnectionPool<T> cp = createConnectionPool(factory.createConnectionFactory(asConfig, cpConfig, tracerFactory,
                     monitor));
             this.cp = cp;
