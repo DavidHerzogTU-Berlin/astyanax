@@ -98,6 +98,15 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
     final ListeningExecutorService         executor;
     Host                                   pinnedHost;
     RetryPolicy                            retry;
+    private static long mu =0;
+    private static long qsz =0;
+
+    public static long getMU() {
+        return mu;
+    }
+    public static long getQSZ() {
+        return qsz;
+    }
     public ThriftColumnFamilyQueryImpl(ExecutorService executor, KeyspaceTracerFactory tracerFactory,
             ThriftKeyspaceImpl keyspace, ConnectionPool<Cassandra.Client> cp, ColumnFamily<K, C> columnFamily,
             ConsistencyLevel consistencyLevel, RetryPolicy retry) {
@@ -247,8 +256,10 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         }
                                     }
                                 }
-                                //System.out.println("getQsz: " + columnList.get(0).getQsz()); //try this one
-                                //System.out.println("getMu: " + columnList.get(0).getMu());
+                                qsz = columnList.get(0).getQsz();
+                                mu = columnList.get(0).getMu();
+                                System.out.println("getQsz: " + columnList.get(0).getQsz()); //try this one
+                                System.out.println("getMu: " + columnList.get(0).getMu());
                                 ColumnList<C> result = new ThriftColumnOrSuperColumnListImpl<C>(columnList,
                                         columnFamily.getColumnSerializer());
                              
