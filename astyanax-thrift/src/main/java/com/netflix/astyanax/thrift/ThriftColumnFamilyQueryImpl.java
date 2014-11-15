@@ -251,15 +251,6 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 //System.out.println("getMu: " + columnList.get(0).getMu());
                                 ColumnList<C> result = new ThriftColumnOrSuperColumnListImpl<C>(columnList,
                                         columnFamily.getColumnSerializer());
-                             
-                               /** if (result.getColumnByName((C) "MU") != null) {
-                                	PendingRequestMap.addMUSample(context.toString() , 
-                            				Double.valueOf(result.getColumnByName( (C) "MU").getStringValue()) );
-                                }
-                                if (result.getColumnByName((C) "QSZ") != null) {
-                                	PendingRequestMap.addQSZsample(context.toString() , 
-                            				Double.valueOf(result.getColumnByName( (C) "QSZ").getStringValue()) );
-                                }**/
                                 return result;
                             }
                             

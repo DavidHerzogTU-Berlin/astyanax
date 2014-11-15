@@ -60,10 +60,13 @@ public class SendReceiveRateContainer {
         }
         
         public synchronized double getScore() {
+            // XXX: getPendingRequestsAtomic is broken
             AtomicInteger counter = PendingRequestMap.getPendingRequestsAtomic(endpoint.getHostAddress());
             if (counter == null) {
+	        // System.out.println("Returning 0 as a score");
                 return 0.0;
             }
+	    // System.out.println(emaQSZ + " " + PendingRequestMap.getMap_size() + " " + counter.get() + " " + emaMu);
             return emaNw + Math.pow(1 + emaQSZ + (PendingRequestMap.getMap_size()* counter.get()), 3) * emaMu;
         }
 
