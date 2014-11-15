@@ -165,6 +165,7 @@ public class PendingRequestMap {
 	}
 
 	public static AtomicInteger getPendingRequestsAtomic(String ip) {
+                ///XXX: broken
 		try {
 			return pendingRequestMap.get(InetAddress.getByName(ip));
 		} catch(UnknownHostException e) {
