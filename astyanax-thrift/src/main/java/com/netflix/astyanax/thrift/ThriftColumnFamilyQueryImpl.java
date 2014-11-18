@@ -98,15 +98,10 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
     final ListeningExecutorService         executor;
     Host                                   pinnedHost;
     RetryPolicy                            retry;
-    private static long mu =0;
-    private static long qsz =0;
+    private double mu = 0;
+    private int qsz = 0;
+    private String ip;
 
-    public static long getMU() {
-        return mu;
-    }
-    public static long getQSZ() {
-        return qsz;
-    }
     public ThriftColumnFamilyQueryImpl(ExecutorService executor, KeyspaceTracerFactory tracerFactory,
             ThriftKeyspaceImpl keyspace, ConnectionPool<Cassandra.Client> cp, ColumnFamily<K, C> columnFamily,
             ConsistencyLevel consistencyLevel, RetryPolicy retry) {
@@ -192,7 +187,8 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
             @Override
             public OperationResult<ColumnList<C>> execute() throws ConnectionException {
-                return connectionPool.executeWithFailover(
+                OperationResult<ColumnList<C>> opResult =
+                 connectionPool.executeWithFailover(
                         new AbstractKeyspaceOperationImpl<ColumnList<C>>(tracerFactory.newTracer(
                                 CassandraOperationType.GET_ROW, columnFamily), pinnedHost, keyspace.getKeyspaceName()) {
 
@@ -208,14 +204,15 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
 
                             @Override
                             public ColumnList<C> internalExecute(Client client, ConnectionContext context) throws Exception {   
-        
-                                PendingRequestMap.incrementPendingRequest(context.toString());
+                                ip = context.toString();
+                                PendingRequestMap.incrementPendingRequest(ip);
+                                
                                 List<ColumnOrSuperColumn> columnList = client.get_slice(columnFamily.getKeySerializer()
                                         .toByteBuffer(rowKey), new ColumnParent().setColumn_family(columnFamily
                                         .getName()), predicate, ThriftConverter
                                         .ToThriftConsistencyLevel(consistencyLevel));
                                
-                                PendingRequestMap.decrementPendingRequest(context.toString());
+                                PendingRequestMap.decrementPendingRequest(ip);
                                 // Special handling for pagination
                                 if (isPaginating && predicate.isSetSlice_range()) {
                                     // Did we reach the end of the query.
@@ -256,10 +253,8 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                         }
                                     }
                                 }
-                                qsz = columnList.get(0).getQsz();
-                                mu = columnList.get(0).getMu();
-                                System.out.println("getQsz: " + columnList.get(0).getQsz()); //try this one
-                                System.out.println("getMu: " + columnList.get(0).getMu());
+                                qsz = (int) columnList.get(0).getQsz();
+                                mu = (double) columnList.get(0).getMu();
                                 ColumnList<C> result = new ThriftColumnOrSuperColumnListImpl<C>(columnList,
                                         columnFamily.getColumnSerializer());
                                 return result;
@@ -270,6 +265,8 @@ public class ThriftColumnFamilyQueryImpl<K, C> implements ColumnFamilyQuery<K, C
                                 return columnFamily.getKeySerializer().toByteBuffer(rowKey);
                             }
                         }, retry);
+                PendingRequestMap.addSamples(ip, mu, qsz, (double) opResult.getLatency());
+                return opResult;
             }
 
             @Override
