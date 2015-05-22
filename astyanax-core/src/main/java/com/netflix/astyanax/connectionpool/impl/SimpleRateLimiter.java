@@ -7,41 +7,46 @@ import org.slf4j.LoggerFactory;
  * Created by lalith on 31.08.14.
  */
 public class SimpleRateLimiter {
-    private static final Logger logger = LoggerFactory.getLogger(SimpleRateLimiter.class);
-    private long lastSent;
-    private double tokens;
+        private long lastSent;
+        private double tokens;
 
-    private double rate;
-    private double rateInterval; // in milliseconds
-    private final double maxTokens;
+        private double rate;
+        private double rateIntervalInMillis; // in milliseconds
+        private final double maxTokens;
 
 
-    public SimpleRateLimiter(double initialRate, double rateInterval, double maxTokens) {
-        this.rate = initialRate;
-        this.rateInterval = rateInterval * 1000000;
-        this.maxTokens = maxTokens;
-        this.tokens = maxTokens;
-        this.lastSent = System.nanoTime();
-    }
-
-    public synchronized double tryAcquire() {
-        tokens = Math.min(maxTokens,
-                tokens + (rate/rateInterval * (System.nanoTime() - lastSent)));
-        if (tokens >= 1) {
-            tokens -= 1;
-            lastSent = System.nanoTime();
-            return 0;
+        public SimpleRateLimiter(double initialRate, double rateIntervalInNanos, double maxTokens)
+        {
+            this.rate = initialRate;
+            this.rateIntervalInMillis = rateIntervalInNanos * 1000000;
+            this.maxTokens = maxTokens;
+            this.tokens = maxTokens;
+            this.lastSent = System.nanoTime();
         }
-        else {
-            return (1 - tokens) * rateInterval/rate; // Nanoseconds
+
+        public synchronized double tryAcquire()
+        {
+            double currentTokens = Math.min(maxTokens,
+                                            tokens + (rate / rateIntervalInMillis * (System.nanoTime() - lastSent)));
+            if (currentTokens >= 1)
+            {
+                tokens = currentTokens - 1;
+                lastSent = System.nanoTime();
+                return 0;
+            }
+            else
+            {
+                return (1 - currentTokens) * rateIntervalInMillis / rate; // Nanoseconds
+            }
         }
-    }
 
-    public synchronized double getRate() {
-        return rate;
-    }
+        public synchronized double getRate()
+        {
+            return rate;
+        }
 
-    public synchronized void setRate(final double rate) {
-        this.rate = rate;
-    }
+        public synchronized void setRate(final double rate)
+        {
+            this.rate = rate;
+        }
 }
