@@ -14,6 +14,7 @@ public class SlottedRateTracker {
     private long lastTick = 0;
     private long eventCount = 0;
     private double lastRate = 0.0;
+    private final double ALPHA = 0.9;
 
     /**
      *
@@ -51,20 +52,22 @@ public class SlottedRateTracker {
      * @param requests
      */
     public synchronized void add(long requests) {
-        final long now = System.currentTimeMillis()/interval;
-        if (now - lastTick < 2) {
-            eventCount += requests;
-            if (now > lastTick) {
-                final double alpha = (now - lastTick)/(float) interval;
-                currentRate = alpha * ((double) eventCount) + (1 - alpha) * currentRate;
+        final long now = System.currentTimeMillis() / interval;
+            if (now - lastTick < 2)
+            {
+                eventCount += requests;
+                if (now > lastTick)
+                {
+                    currentRate = ALPHA  * ((double) eventCount) + (1 - ALPHA ) * currentRate;
+                    lastTick = now;
+                    eventCount = 0;
+                }
+            }
+            else
+            {
+                currentRate = ALPHA  * ((double) eventCount) + (1 - ALPHA ) * currentRate;
                 lastTick = now;
                 eventCount = 0;
             }
-        }
-        else {
-            currentRate = eventCount;
-            lastTick = now;
-            eventCount = 0;
-        }
     }
 }
